@@ -37,6 +37,7 @@
     [self addBricks:self.size];
     [self addPlayer:self.size];
    
+    
 
 }
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
