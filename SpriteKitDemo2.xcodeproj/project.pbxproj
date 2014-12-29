@@ -448,6 +448,7 @@
 				2982CA801A5063BB005C857B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2982CA811A5063BB005C857B /* Build configuration list for PBXNativeTarget "SpriteKitDemo2Tests" */ = {
 			isa = XCConfigurationList;
@@ -456,6 +457,7 @@
 				2982CA831A5063BB005C857B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

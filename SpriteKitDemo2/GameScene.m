@@ -11,6 +11,9 @@
 @interface GameScene()
 
 @property(nonatomic)SKSpriteNode * paddle;
+@property(nonatomic)SKSpriteNode * ball;
+@property(nonatomic)SKLabelNode*score;
+
 
 @end
 @implementation GameScene
@@ -23,17 +26,18 @@
      self.size = self.view.frame.size;
     
     /* Setup your scene here */
-    self.backgroundColor=[SKColor whiteColor];
+    self.backgroundColor=[SKColor greenColor];
     
     // Pysic body to the scene
     self.physicsBody =[SKPhysicsBody bodyWithEdgeLoopFromRect:self.frame];
     
 
     // change gravity settings of the physics world
-    self.physicsWorld.gravity = CGVectorMake(0,0);
+    self.physicsWorld.gravity = CGVectorMake(0,1);
     
     
     [self addBall:self.size];
+    [self addScore:self.size];
     [self addBricks:self.size];
     [self addPlayer:self.size];
    
@@ -48,10 +52,10 @@
     {
         CGPoint  location = [touch locationInNode:self]; // self related to current Scene
         
-        CGPoint newPosition = CGPointMake(location.x, 100);
-        
+        CGPoint newPosition = CGPointMake(location.x, 40);
 
         
+       
         // Stop the paddle  from going to far
         if(newPosition.x < self.paddle.size.width/2){
             newPosition.x = self.paddle.size.width/2;
@@ -60,13 +64,32 @@
         if (newPosition.x >self.size.width - (self.paddle.size.width/2)) {
             newPosition.x = self.size.width - (self.paddle.size.width/2);
         }
-        
+      
         // Update Player Position
+
         self.paddle.position = newPosition;
     }
     
 
 }
+
+
+
+-(void)addScore:(CGSize)size{
+    
+    self.score=[SKLabelNode labelNodeWithText:@"Hello Fahad"];
+    self.score.name=@"ScoreLable";
+    self.score.position=CGPointMake(self.size.width/2, self.size.height-18);
+    self.score.fontColor=[UIColor blackColor];
+    self.score.fontSize=18;
+    self.score.physicsBody.dynamic=NO;
+    
+    [self addChild:self.score];
+    
+}
+
+
+
 
 // Player
 - (void)addPlayer:(CGSize)size{
@@ -78,10 +101,10 @@
     self.paddle =[SKSpriteNode spriteNodeWithImageNamed:@"paddle"];
     
     // position
-    self.paddle.position = CGPointMake(size.width/2, 100);
+    self.paddle.position = CGPointMake(size.width/2, 40);
     
     self.paddle.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:self.paddle.frame.size];
-    
+
     // make it static
     self.paddle.physicsBody.dynamic = NO;
     // add to scene
@@ -102,7 +125,7 @@
         brick.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:brick.frame.size];
         
         brick.physicsBody.dynamic =NO;
-        int xPos =size.width/5 * (i+1);
+        int xPos =size.width/5 * (i+3);
         int yPos = size.height -50;
         brick.position = CGPointMake(xPos, yPos);
         
@@ -117,40 +140,45 @@
     
     // Size ==> getting from didMoveToView
     // create new sprite node from an image
-    SKSpriteNode * ball =[SKSpriteNode spriteNodeWithImageNamed:@"ball"];
+    self.ball =[SKSpriteNode spriteNodeWithImageNamed:@"ball"];
     
     
     // create a CGPoint for position ( center of Scene )
     //Get Screen center ( i'm getting center position )  الطول تقسيم ٢ و العرض تقسيم ٢
     CGPoint myPoint =CGPointMake(size.width/2, size.height/2);
-    ball.position = myPoint;
+    self.ball.position = myPoint;
     
     
     // Add physics body to the ball
-    ball.physicsBody =[SKPhysicsBody bodyWithCircleOfRadius:ball.frame.size.width/2];
+    self.ball.physicsBody =[SKPhysicsBody bodyWithCircleOfRadius:self.ball.frame.size.width/2];
     
-    ball.physicsBody.friction = 0;
-    
+    // احتكاك
+    self.ball.physicsBody.friction = 0;
+ 
     /* سرعة الإيقاف او الاسقاط */
-    ball.physicsBody.linearDamping = 0;
+    self.ball.physicsBody.linearDamping = 0;
+    
     
     // The power after touch another object 1= full power ex: p = 20  p/p = 1
-    ball.physicsBody.restitution = 1;
+    self.ball.physicsBody.restitution = 1;
     // add the sprite to the scene
-    [self addChild:ball];
+    [self addChild:self.ball];
     
     
     // Create the Vector
                             //       X    Y
-    CGVector myVector = CGVectorMake(15, 15);
+    CGVector myVector = CGVectorMake(10, 10);
     
     //Apply the vector to the ball
     
-    [ball.physicsBody applyImpulse:myVector];
+    [self.ball.physicsBody applyImpulse:myVector];
 }
 
 -(void)update:(CFTimeInterval)currentTime {
     /* Called before each frame is rendered */
+
+
+    
 }
 
 @end
