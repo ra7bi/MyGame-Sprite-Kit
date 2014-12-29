@@ -7,26 +7,44 @@
 //
 
 #import "GameScene.h"
-
+#import "EndScene.h"
 @interface GameScene()
 
 @property(nonatomic)SKSpriteNode * paddle;
 @property(nonatomic)SKSpriteNode * ball;
-@property(nonatomic)SKLabelNode*score;
+@property(nonatomic)int score;
 
 
 @end
+
+// be careful when providing direct integer values - this would cause problems.
+// static const uint32_t WHOOPSCategory = 15; // 00000000000000000000000000001111
+
+/* alternatively, using bitwise operators
+ static const uint32_t ballCategory   = 0x1;      // 00000000000000000000000000000001
+ static const uint32_t brickCategory  = 0x1 << 1; // 00000000000000000000000000000010
+ static const uint32_t paddleCategory = 0x1 << 2; // 00000000000000000000000000000100
+ static const uint32_t edgeCategory   = 0x1 << 3; // 00000000000000000000000000001000
+ */
+
+static const uint32_t ballCategory   = 1;
+static const uint32_t brickCategory  = 2;
+static const uint32_t paddleCategory = 4;
+static const uint32_t edgeCategory   = 8;
+static const uint32_t bottomEdgeCategory   = 16; // الارضية
+
+
 @implementation GameScene
 
 
 
 -(void)didMoveToView:(SKView *)view {
-    
+    self.score =0;
         // Set size of current Scene
      self.size = self.view.frame.size;
     
     /* Setup your scene here */
-    self.backgroundColor=[SKColor greenColor];
+    self.backgroundColor=[SKColor orangeColor];
     
     // Pysic body to the scene
     self.physicsBody =[SKPhysicsBody bodyWithEdgeLoopFromRect:self.frame];
@@ -35,11 +53,15 @@
     // change gravity settings of the physics world
     self.physicsWorld.gravity = CGVectorMake(0,1);
     
+    // delegate of the will be on this class
+    self.physicsWorld.contactDelegate =self;
+    
+    self.physicsBody.categoryBitMask = edgeCategory;
     
     [self addBall:self.size];
-    [self addScore:self.size];
     [self addBricks:self.size];
     [self addPlayer:self.size];
+    [self addBottomEdge:self.size];
    
     
 
@@ -75,18 +97,6 @@
 
 
 
--(void)addScore:(CGSize)size{
-    
-    self.score=[SKLabelNode labelNodeWithText:@"Hello Fahad"];
-    self.score.name=@"ScoreLable";
-    self.score.position=CGPointMake(self.size.width/2, self.size.height-18);
-    self.score.fontColor=[UIColor blackColor];
-    self.score.fontSize=18;
-    self.score.physicsBody.dynamic=NO;
-    
-    [self addChild:self.score];
-    
-}
 
 
 
@@ -108,6 +118,7 @@
     // make it static
     self.paddle.physicsBody.dynamic = NO;
     // add to scene
+    self.paddle.physicsBody.categoryBitMask =paddleCategory;
     [self addChild:self.paddle];
 }
 
@@ -125,10 +136,10 @@
         brick.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:brick.frame.size];
         
         brick.physicsBody.dynamic =NO;
-        int xPos =size.width/5 * (i+3);
+        int xPos =size.width/5 * (i+1);
         int yPos = size.height -50;
         brick.position = CGPointMake(xPos, yPos);
-        
+        brick.physicsBody.categoryBitMask=brickCategory;
         [self addChild:brick];
         
     }
@@ -159,8 +170,14 @@
     self.ball.physicsBody.linearDamping = 0;
     
     
-    // The power after touch another object 1= full power ex: p = 20  p/p = 1
-    self.ball.physicsBody.restitution = 1;
+    // The power after touch another object 1= full power ex: speed before touch/speed after = (20/20)=1
+    self.ball.physicsBody.restitution = 1.0f;
+    
+    
+    // Add category AND     // i want to say if ball touce brick  |=> OR
+    self.ball.physicsBody.categoryBitMask = ballCategory;
+    self.ball.physicsBody.contactTestBitMask = brickCategory | paddleCategory | bottomEdgeCategory;
+    
     // add the sprite to the scene
     [self addChild:self.ball];
     
@@ -179,6 +196,62 @@
 
 
     
+}
+
+
+// IF Contact is true
+-(void)didBeginContact:(SKPhysicsContact *)contact{
+    
+
+    
+    // check if ball or brick
+    SKPhysicsBody * notTheBall;
+    
+    if (contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask) {
+        notTheBall = contact.bodyB;
+    
+    }else{
+        notTheBall =contact.bodyA;
+    }
+    
+    if (notTheBall.categoryBitMask == brickCategory) {
+//        SKAction * playSound =[SKAction playSoundFileNamed:@"brickhit.caf" waitForCompletion:NO];
+//        [self runAction:playSound];
+//        
+        self.score++;
+        [notTheBall.node removeFromParent];
+    }
+    
+    if (notTheBall.categoryBitMask ==paddleCategory )
+    {
+        
+        SKAction * playSFX =[SKAction playSoundFileNamed:@"blip.caf" waitForCompletion:NO];
+        
+        // Who play this songe
+        [self runAction:playSFX];
+
+    }
+    
+    if (notTheBall.categoryBitMask ==bottomEdgeCategory)
+    {
+        
+       // End  Scene
+        EndScene * end =[EndScene sceneWithSize:self.size];
+        [self.view presentScene:end transition:[SKTransition doorsCloseHorizontalWithDuration:1.0]];
+        
+                                   
+    }
+}
+
+
+
+-(void)addBottomEdge:(CGSize)size{
+    // رسم الارضية فقط
+    SKNode *bottomEdge = [SKNode node];
+    bottomEdge.physicsBody =  [SKPhysicsBody bodyWithEdgeFromPoint:CGPointMake(0, 1) toPoint:CGPointMake(size.width, 1)];
+    
+    bottomEdge.physicsBody.categoryBitMask = bottomEdgeCategory;
+    [self addChild:bottomEdge];
 }
 
 @end
